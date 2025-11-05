@@ -1,0 +1,118 @@
+
+# Military Asset Management System
+
+## Overview
+
+A full-stack web application for secure, role-based management of military assets and inventory across multiple bases. Supports transparent tracking of purchases, transfers, assignments, and expenditures, with complete audit trails and a real-time dashboard.
+
+
+## Features
+
+- 🔑 **Role-Based Access Control (RBAC)**: Admins, Base Commanders, Logistics Officers  
+- 📊 **Dashboard**: Live metrics for inventory flows and status  
+- ✅ **Core Flows**: Purchases, Transfers, Assignments to personnel, Expenditure logging  
+- 🔎 **Full Audit Logging**: Every transaction/action stored for traceability  
+- 📁 **Secure REST API**: JWT authentication for all endpoints  
+- 💻 **Responsive Interface**: Clean React UI for all roles
+
+
+## Tech Stack
+
+- **Frontend**: React, React Router, Axios  
+- **Backend**: Node.js, Express.js, JWT, bcrypt  
+- **Database**: PostgreSQL  
+- **Other**: dotenv, CORS, express-rate-limit
+
+
+
+## System Architecture
+
+```
+[ React Frontend ] ←→ [ Express.js API (Node.js) ] ←→ [ PostgreSQL ]
+           REST (JWT)
+```
+- UI communicates with backend via secure REST endpoints.
+- Backend performs authentication, authorization, and transaction handling.
+- Database maintains normalized, relational records and history.
+
+***
+
+## Data Models / Schema
+
+- `users`: id, username, email, password_hash, role, base_id
+- `bases`: id, name, location
+- `equipment_types`: id, name, category, unit
+- `inventory`: id, base_id, equipment_type_id, opening_balance, closing_balance
+- `purchases`, `transfers`, `assignments`, `expenditures`: Transaction logs for asset movement/actions
+- `audit_logs`: user_id, action, table, record_id, details, timestamp
+
+***
+
+## RBAC (Role-Based Access Control)
+
+| Role               | Permissions                                          |
+|--------------------|-----------------------------------------------------|
+| Admin              | All actions, all bases                              |
+| Base Commander     | Their base assets only                              |
+| Logistics Officer  | Purchases & Transfers system-wide                   |
+
+- Backend middleware checks every route for proper role and base assignment.
+- Frontend shows or hides actions based on logged-in user role.
+
+
+
+## API Logging
+
+- All data-changing requests (POST, PATCH, DELETE) are logged in `audit_logs` table, with user id, time, action, and detail JSON.  
+- Enables full traceability for security and audits.
+
+
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js
+- PostgreSQL
+
+### Backend
+```bash
+cd backend
+cp .env.example .env     # Edit values as needed
+npm install
+# Run migration to create tables (in psql, or via pgAdmin)
+npm run dev
+```
+
+### Frontend
+```bash
+cd frontend
+cp .env.example .env     # Set REACT_APP_API_URL=http://localhost:5000/api
+npm install
+npm start
+```
+
+### Database
+- Start PostgreSQL and create the database.
+- Run `models/schema.sql` to create all tables and seed demo data/users.
+
+#### Default Users
+| Username            | Password      | Role              |
+|---------------------|--------------|-------------------|
+| admin               | admin123      | Admin             |
+| commander_beta      | commander123  | Base Commander    |
+| logistics_officer   | logistics123  | Logistics Officer |
+
+***
+
+## Sample API Endpoints
+
+| Method | Endpoint                      | Description             |
+|--------|-------------------------------|-------------------------|
+| POST   | /api/auth/login               | Log in, returns JWT     |
+| POST   | /api/auth/register            | Add new user (admin)    |
+| GET    | /api/dashboard/metrics        | Dashboard summary       |
+| POST   | /api/purchases                | Create a purchase       |
+| POST   | /api/transfers                | Initiate transfer       |
+| PATCH  | /api/transfers/:id/status     | Approve/complete transfer|
+| POST   | /api/assignments/assignments  | Assign equipment        |
+| POST   | /api/assignments/expenditures | Record expenditure      |
